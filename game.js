@@ -158,10 +158,10 @@ function isNearRoad(x,y,thresh){
 
 // ---------- Definitions ----------
 const TOWERS = {
-  pep:     { name:"Pepperoni", cost:50,  range:120, fireRate:3.0,  projectile:"bullet", dmg:10, color:"rgba(255,77,109,.9)" },
-  freezer: { name:"Freezer",   cost:70,  range:110, fireRate:1.6,  projectile:"ice",    dmg:6,  slow:0.75, slowDur:0.8, splash:36, color:"rgba(114,221,255,.9)" },
-  laser:   { name:"LaserSlice",cost:95,  range:160, fireRate:1.2,  projectile:"laser",  dmg:28, color:"rgba(255,209,102,.95)" },
-  bomb:    { name:"BombOven",  cost:110, range:140, fireRate:0.65, projectile:"bomb",   dmg:22, splash:60, color:"rgba(255,159,28,.95)" },
+  pep:     { name:"Pepperoni", cost:100,  range:120, fireRate:3.0,  projectile:"bullet", dmg:10, color:"rgba(255,77,109,.9)" },
+  freezer: { name:"Freezer",   cost:120,  range:110, fireRate:1.6,  projectile:"ice",    dmg:6,  slow:0.75, slowDur:0.8, splash:36, color:"rgba(114,221,255,.9)" },
+  laser:   { name:"LaserSlice",cost:150,  range:160, fireRate:1.2,  projectile:"laser",  dmg:28, color:"rgba(255,209,102,.95)" },
+  bomb:    { name:"BombOven",  cost:220, range:140, fireRate:0.65, projectile:"bomb",   dmg:22, splash:60, color:"rgba(255,159,28,.95)" },
 };
 
 const ENEMIES = {
