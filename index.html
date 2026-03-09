@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Pizza Tower Defense</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">🍕 Pizza Tower Defense</div>
+
+    <div class="hud">
+      <div>Wave: <span id="wave">1</span></div>
+      <div>Lives: <span id="lives">20</span></div>
+      <div>Cash: $<span id="cash">140</span></div>
+      <div>Score: <span id="score">0</span></div>
+    </div>
+
+    <div class="controls">
+      <button id="btnStart">Start</button>
+      <button id="btnPause">Pause</button>
+      <button id="btnRestart">Restart</button>
+      <div class="tip">Click a tower button, then click map to place. Click a tower to upgrade. Del sells.</div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <canvas id="game" width="980" height="560"></canvas>
+
+    <aside class="panel">
+      <h2>Tower Shop</h2>
+
+      <div class="shopGrid" id="shopGrid">
+        <button class="towerBtn active" data-tower="pep">
+          <span class="ico">🍕</span>
+          <span class="meta">
+            <span class="name">Pepperoni</span>
+            <span class="desc">Fast single-target</span>
+          </span>
+          <span class="price">$50</span>
+        </button>
+
+        <button class="towerBtn" data-tower="freezer">
+          <span class="ico">🧊</span>
+          <span class="meta">
+            <span class="name">Freezer</span>
+            <span class="desc">Splash + slow</span>
+          </span>
+          <span class="price">$70</span>
+        </button>
+
+        <button class="towerBtn" data-tower="laser">
+          <span class="ico">🔪</span>
+          <span class="meta">
+            <span class="name">Laser Slice</span>
+            <span class="desc">High damage</span>
+          </span>
+          <span class="price">$95</span>
+        </button>
+
+        <button class="towerBtn" data-tower="bomb">
+          <span class="ico">🔥</span>
+          <span class="meta">
+            <span class="name">Bomb Oven</span>
+            <span class="desc">Big splash</span>
+          </span>
+          <span class="price">$110</span>
+        </button>
+      </div>
+
+      <h2>Controls</h2>
+      <ul>
+        <li><b>Click tower button</b> to select it</li>
+        <li><b>Click map</b> to place</li>
+        <li><b>Click a tower</b> to upgrade</li>
+        <li><b>Del/Backspace</b> sells hovered tower</li>
+      </ul>
+
+      <div class="note">Sounds are generated in-browser (no external files).</div>
+    </aside>
+  </main>
+
+  <footer class="footer">
+    <span>Tip: Place towers near bends for extra shots.</span>
+  </footer>
+
+  <script src="game.js"></script>
+</body>
+</html>

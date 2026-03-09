@@ -1,0 +1,208 @@
+:root{
+  --bg:#0f1220;
+  --panel:#151a2e;
+  --panel2:#1a2140;
+  --text:#e9ecff;
+  --muted:#aab0d6;
+  --accent:#ff4d6d;
+  --accent2:#ffd166;
+  --good:#3ddc97;
+  --bad:#ff6b6b;
+  --stroke:rgba(255,255,255,.10);
+}
+
+*{ box-sizing:border-box; }
+html,body{ height:100%; }
+body{
+  margin:0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  background: radial-gradient(1200px 700px at 10% 10%, #1b2450 0%, var(--bg) 55%, #0b0d18 100%);
+  color:var(--text);
+}
+
+.topbar{
+  display:flex;
+  gap:18px;
+  align-items:center;
+  justify-content:space-between;
+  padding:14px 16px;
+  border-bottom:1px solid var(--stroke);
+  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.00));
+}
+
+.brand{
+  font-weight:800;
+  letter-spacing:.3px;
+}
+
+.hud{
+  display:flex;
+  gap:18px;
+  color:var(--muted);
+  font-weight:600;
+}
+.hud span{ color:var(--text); }
+
+.controls{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.controls button{
+  padding:8px 10px;
+  border-radius:10px;
+  border:1px solid var(--stroke);
+  background: rgba(255,255,255,.06);
+  color:var(--text);
+  cursor:pointer;
+  font-weight:700;
+}
+.controls button:hover{ background: rgba(255,255,255,.10); }
+.controls .tip{
+  margin-left:10px;
+  color:var(--muted);
+  font-size:13px;
+}
+
+.wrap{
+  display:grid;
+  grid-template-columns: 1fr 320px;
+  gap:16px;
+  padding:16px;
+}
+
+#game{
+  width:100%;
+  height:auto;
+  border-radius:16px;
+  border:1px solid var(--stroke);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)),
+    radial-gradient(700px 400px at 65% 30%, rgba(255,77,109,.14), rgba(0,0,0,0)),
+    radial-gradient(800px 460px at 35% 70%, rgba(61,220,151,.10), rgba(0,0,0,0)),
+    #0d1020;
+  box-shadow: 0 14px 30px rgba(0,0,0,.35);
+}
+
+.panel{
+  border-radius:16px;
+  padding:14px 14px;
+  border:1px solid var(--stroke);
+  background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+}
+
+.panel h2{
+  margin:10px 0 10px;
+  font-size:14px;
+  letter-spacing:.4px;
+  text-transform:uppercase;
+  color:var(--muted);
+}
+
+.card{
+  border-radius:14px;
+  padding:12px;
+  border:1px solid var(--stroke);
+  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+}
+.row{ display:flex; gap:12px; align-items:center; }
+.towerIcon{
+  width:44px;height:44px;border-radius:12px;
+  display:grid;place-items:center;
+  background: rgba(255,209,102,.14);
+  border:1px solid rgba(255,209,102,.22);
+  font-size:22px;
+}
+.title{ font-weight:800; }
+.sub{ color:var(--muted); font-size:13px; margin-top:2px; }
+.stats{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:8px;
+  margin-top:10px;
+  color:var(--muted);
+  font-size:13px;
+}
+.stats b{ color:var(--text); }
+
+.panel ul{
+  margin:8px 0 0 18px;
+  padding:0;
+  color:var(--muted);
+  line-height:1.45;
+}
+
+.note{
+  margin-top:12px;
+  font-size:12px;
+  color:var(--muted);
+  border-top:1px dashed var(--stroke);
+  padding-top:10px;
+}
+
+.footer{
+  padding:10px 16px;
+  color:var(--muted);
+  border-top:1px solid var(--stroke);
+  font-size:13px;
+}
+.shopGrid{
+  display:grid;
+  grid-template-columns: 1fr;
+  gap:10px;
+}
+
+.towerBtn{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  width:100%;
+  padding:10px;
+  border-radius:14px;
+  border:1px solid var(--stroke);
+  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+  color:var(--text);
+  cursor:pointer;
+  text-align:left;
+}
+
+.towerBtn:hover{
+  background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.03));
+}
+
+.towerBtn.active{
+  border-color: rgba(255, 209, 102, .55);
+  box-shadow: 0 0 0 3px rgba(255, 209, 102, .18) inset;
+}
+
+.towerBtn .ico{
+  width:42px;height:42px;
+  border-radius:12px;
+  display:grid;place-items:center;
+  background: rgba(255,209,102,.12);
+  border:1px solid rgba(255,209,102,.18);
+  font-size:20px;
+  flex: 0 0 auto;
+}
+
+.towerBtn .meta{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+  min-width:0;
+  flex: 1 1 auto;
+}
+.towerBtn .name{ font-weight:900; }
+.towerBtn .desc{
+  color:var(--muted);
+  font-size:12.5px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.towerBtn .price{
+  color: rgba(255, 209, 102, .95);
+  font-weight:900;
+  flex: 0 0 auto;
+}
