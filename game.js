@@ -1,23 +1,8 @@
-/* Pizza Tower Defense (Expanded + Button Tower Shop)
-   Towers:
-    - Pepperoni (fast single target)
-    - Freezer (splash + slow)
-    - Laser Slice (high dmg fast projectile)
-    - Bomb Oven (big splash)
-
-   Enemies:
-    - Rat (basic)
-    - Pineapple (tanky)
-    - Olive (fast)
-    - Meatball Boss (every 5 waves)
-
-   UI:
-    - Click tower buttons to select
-    - Click map to place
-    - Click a tower to upgrade
-    - Del/Backspace sells hovered tower
-
-   Sounds: WebAudio generated (no external assets)
+/* Pizza Tower Defense (Expanded + Mobile Friendly + De-select)
+   - Tap/click a tower button to select. Tap it again (or Esc) to de-select.
+   - Tap/click map to place if a tower is selected.
+   - Tap/click an existing tower to open action bar (Upgrade/Sell/Close).
+   - Sounds: WebAudio generated (no external assets)
 */
 
 const canvas = document.getElementById("game");
@@ -35,6 +20,86 @@ const UI = {
 };
 
 const W = canvas.width, H = canvas.height;
+
+// ---------- Mobile action bar (created if missing) ----------
+function ensureActionBar(){
+  let bar = document.getElementById("actionBar");
+  if (bar) return bar;
+
+  bar = document.createElement("div");
+  bar.id = "actionBar";
+  bar.innerHTML = `
+    <div class="abCard">
+      <div class="abTitle" id="abTitle">Tower</div>
+      <div class="abRow">
+        <button id="abUpgrade">Upgrade</button>
+        <button id="abSell" class="danger">Sell</button>
+        <button id="abClose" class="ghost">Close</button>
+      </div>
+      <div class="abHint" id="abHint"></div>
+    </div>
+  `;
+  document.body.appendChild(bar);
+
+  // minimal inline CSS (so it works even if you don’t update style.css)
+  const style = document.createElement("style");
+  style.textContent = `
+    #actionBar{
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px));
+      display: none;
+      z-index: 9999;
+      background: linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,.55));
+      backdrop-filter: blur(6px);
+    }
+    #actionBar .abCard{
+      max-width: 920px;
+      margin: 0 auto;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 16px;
+      background: rgba(15,18,32,.82);
+      padding: 10px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+    #actionBar .abTitle{
+      font: 800 14px ui-sans-serif, system-ui;
+      color: rgba(233,236,255,.95);
+      margin: 2px 2px 10px;
+    }
+    #actionBar .abRow{
+      display: flex;
+      gap: 10px;
+    }
+    #actionBar button{
+      flex: 1 1 auto;
+      padding: 12px 10px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: rgba(233,236,255,.95);
+      font: 800 14px ui-sans-serif, system-ui;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    #actionBar button.danger{ border-color: rgba(255,107,107,.35); }
+    #actionBar button.ghost{ opacity: .9; }
+    #actionBar .abHint{
+      margin: 8px 2px 0;
+      color: rgba(170,176,214,.95);
+      font: 600 12px ui-sans-serif, system-ui;
+    }
+  `;
+  document.head.appendChild(style);
+
+  return bar;
+}
+const actionBar = ensureActionBar();
+const abTitle = document.getElementById("abTitle");
+const abHint = document.getElementById("abHint");
+const abUpgrade = document.getElementById("abUpgrade");
+const abSell = document.getElementById("abSell");
+const abClose = document.getElementById("abClose");
 
 // ---------- WebAudio SFX ----------
 let audioCtx = null;
@@ -81,7 +146,6 @@ function noiseBurst({dur=0.12, gain=0.06, when=0, hp=900}){
   src.start(t0);
   src.stop(t0 + dur + 0.02);
 }
-
 const SFX = {
   shoot(){ ensureAudio(); beep({freq:640,type:"square",dur:0.05,gain:0.05,slide:-160}); noiseBurst({dur:0.05,gain:0.02,hp:1200}); },
   laser(){ ensureAudio(); beep({freq:980,type:"sine",dur:0.07,gain:0.06,slide:120}); },
@@ -114,7 +178,6 @@ const path = [
   {x: 820, y: 480},
   {x: 940, y: 480},
 ];
-
 function cachePath(){
   const lens=[]; let total=0;
   for (let i=0;i<path.length-1;i++){
@@ -158,12 +221,11 @@ function isNearRoad(x,y,thresh){
 
 // ---------- Definitions ----------
 const TOWERS = {
-  pep:     { name:"Pepperoni", cost:100,  range:120, fireRate:3.0,  projectile:"bullet", dmg:10, color:"rgba(255,77,109,.9)" },
-  freezer: { name:"Freezer",   cost:120,  range:110, fireRate:1.6,  projectile:"ice",    dmg:6,  slow:0.75, slowDur:0.8, splash:36, color:"rgba(114,221,255,.9)" },
-  laser:   { name:"LaserSlice",cost:150,  range:160, fireRate:1.2,  projectile:"laser",  dmg:28, color:"rgba(255,209,102,.95)" },
-  bomb:    { name:"BombOven",  cost:220, range:140, fireRate:0.65, projectile:"bomb",   dmg:22, splash:60, color:"rgba(255,159,28,.95)" },
+  pep:     { name:"Pepperoni", cost:50,  range:120, fireRate:3.0,  projectile:"bullet", dmg:10, color:"rgba(255,77,109,.9)" },
+  freezer: { name:"Freezer",   cost:70,  range:110, fireRate:1.6,  projectile:"ice",    dmg:6,  slow:0.75, slowDur:0.8, splash:36, color:"rgba(114,221,255,.9)" },
+  laser:   { name:"LaserSlice",cost:95,  range:160, fireRate:1.2,  projectile:"laser",  dmg:28, color:"rgba(255,209,102,.95)" },
+  bomb:    { name:"BombOven",  cost:110, range:140, fireRate:0.65, projectile:"bomb",   dmg:22, splash:60, color:"rgba(255,159,28,.95)" },
 };
-
 const ENEMIES = {
   rat:      { hp:1.0,  spd:1.0,  r:12, bounty:1.0 },
   pineapple:{ hp:1.8,  spd:0.82, r:14, bounty:1.5 },
@@ -173,7 +235,8 @@ const ENEMIES = {
 
 // ---------- State ----------
 let state;
-let selectedTowerId = "pep";
+let selectedTowerId = null;     // null = de-selected
+let selectedTowerIndex = -1;    // for action bar
 let mouse = {x:0,y:0};
 
 function updateHUD(){
@@ -182,7 +245,6 @@ function updateHUD(){
   UI.cash.textContent = state.cash;
   UI.score.textContent = state.score;
 }
-
 function reset(){
   state = {
     running:false,
@@ -200,27 +262,80 @@ function reset(){
     particles:[],
     spawn: { active:false, toSpawn:0, cooldown:0, enemyHP:20, enemySpeed:45, baseBounty:8 },
   };
+  closeTowerActions();
   updateHUD();
 }
 reset();
 
-// ---------- Shop selection (buttons) ----------
+// ---------- Selection UI ----------
 function setSelectedTower(id){
-  if (!TOWERS[id]) return;
-  selectedTowerId = id;
+  selectedTowerId = id; // id or null
   document.querySelectorAll(".towerBtn").forEach(btn=>{
-    btn.classList.toggle("active", btn.dataset.tower === id);
+    btn.classList.toggle("active", id && btn.dataset.tower === id);
   });
 }
+function toggleSelectedTower(id){
+  if (selectedTowerId === id) setSelectedTower(null);
+  else setSelectedTower(id);
+}
+function closeTowerActions(){
+  selectedTowerIndex = -1;
+  actionBar.style.display = "none";
+}
+function openTowerActions(index){
+  selectedTowerIndex = index;
+  const t = state.towers[index];
+  const def = TOWERS[t.type];
+  const up = towerUpgradeCost(t);
+  abTitle.textContent = `${def.name} (Lv ${t.level})`;
+  abHint.textContent = `Upgrade: $${up} • Sell refund varies • Cash: $${state.cash}`;
+  actionBar.style.display = "block";
+}
 
-// Wire buttons (requires your updated HTML with .towerBtn)
+// Wire shop buttons
 document.querySelectorAll(".towerBtn").forEach(btn=>{
   btn.addEventListener("click", ()=>{
     ensureAudio();
-    setSelectedTower(btn.dataset.tower);
+    toggleSelectedTower(btn.dataset.tower);
+    closeTowerActions();
   });
 });
-setSelectedTower(selectedTowerId);
+
+// Esc to de-select
+window.addEventListener("keydown",(e)=>{
+  if (e.key === "Escape"){
+    setSelectedTower(null);
+    closeTowerActions();
+  }
+});
+
+// ---------- Tower actions (mobile + desktop) ----------
+abUpgrade.addEventListener("click", ()=>{
+  ensureAudio();
+  if (selectedTowerIndex < 0) return;
+  upgradeTower(state.towers[selectedTowerIndex]);
+  // refresh hint
+  if (selectedTowerIndex >= 0) openTowerActions(selectedTowerIndex);
+});
+abSell.addEventListener("click", ()=>{
+  ensureAudio();
+  if (selectedTowerIndex < 0) return;
+  sellTower(selectedTowerIndex);
+  closeTowerActions();
+});
+abClose.addEventListener("click", ()=> closeTowerActions());
+
+// Desktop quick-sell still works when a tower is selected in actions
+window.addEventListener("keydown",(e)=>{
+  const k=e.key.toLowerCase();
+  if (k==="delete" || k==="backspace"){
+    if (selectedTowerIndex !== -1){
+      ensureAudio();
+      sellTower(selectedTowerIndex);
+      closeTowerActions();
+    }
+  }
+});
 
 // ---------- Entities ----------
 function spawnEnemy(kind){
@@ -228,8 +343,7 @@ function spawnEnemy(kind){
   const def=ENEMIES[kind];
   const hp=Math.round(state.spawn.enemyHP * def.hp);
   state.enemies.push({
-    kind,
-    t:0,
+    kind, t:0,
     x:p.x,y:p.y,
     r:def.r,
     hp,hpMax:hp,
@@ -283,6 +397,7 @@ function fireProjectile(tower,target){
 }
 
 function placeTower(x,y){
+  if (!selectedTowerId) return false;
   const def=TOWERS[selectedTowerId];
   if (state.cash < def.cost) return false;
   if (isNearRoad(x,y,34)) return false;
@@ -320,19 +435,52 @@ function sellTower(idx){
   const refund=Math.round(t.cost*0.65 + (t.level*0.35*t.cost));
   state.cash += refund;
   state.towers.splice(idx,1);
+  // fix selection index if needed
+  if (selectedTowerIndex === idx) selectedTowerIndex = -1;
+  else if (selectedTowerIndex > idx) selectedTowerIndex--;
   SFX.sell();
   updateHUD();
 }
 
-function findHoveredTower(){
+function findTowerAt(x,y){
   let best=-1, bd=Infinity;
   for (let i=0;i<state.towers.length;i++){
     const t=state.towers[i];
-    const d=dist2(mouse.x,mouse.y,t.x,t.y);
+    const d=dist2(x,y,t.x,t.y);
     if (d < 20*20 && d < bd){ bd=d; best=i; }
   }
   return best;
 }
+
+// ---------- Input (mobile-friendly pointer) ----------
+canvas.addEventListener("pointermove",(ev)=>{
+  const rect=canvas.getBoundingClientRect();
+  mouse.x=(ev.clientX-rect.left)*(canvas.width/rect.width);
+  mouse.y=(ev.clientY-rect.top)*(canvas.height/rect.height);
+});
+
+canvas.addEventListener("pointerdown",(ev)=>{
+  ensureAudio();
+  if (!state.running || state.paused) return;
+
+  const rect=canvas.getBoundingClientRect();
+  const x=(ev.clientX-rect.left)*(canvas.width/rect.width);
+  const y=(ev.clientY-rect.top)*(canvas.height/rect.height);
+
+  // If tapped a tower: open actions (mobile) / select for actions (desktop too)
+  const hit = findTowerAt(x,y);
+  if (hit !== -1){
+    openTowerActions(hit);
+    // don’t place on same tap
+    return;
+  }
+
+  // tap empty: close actions
+  closeTowerActions();
+
+  // place only if tower is selected
+  placeTower(x,y);
+});
 
 // ---------- Waves ----------
 function startWave(){
@@ -352,7 +500,6 @@ function startWave(){
   state.spawn.cooldown=0.25;
   SFX.wave();
 }
-
 function pickEnemyForWave(){
   const w=state.wave;
   const rat=1.0;
@@ -364,7 +511,6 @@ function pickEnemyForWave(){
   if (r<rat+pineapple) return "pineapple";
   return "olive";
 }
-
 function finishWave(){
   state.betweenWaves=true;
   state.spawn.active=false;
@@ -372,34 +518,6 @@ function finishWave(){
   state.wave++;
   updateHUD();
 }
-
-// ---------- Input ----------
-canvas.addEventListener("pointermove",(ev)=>{
-  const rect=canvas.getBoundingClientRect();
-  mouse.x=(ev.clientX-rect.left)*(canvas.width/rect.width);
-  mouse.y=(ev.clientY-rect.top)*(canvas.height/rect.height);
-});
-
-canvas.addEventListener("pointerdown",(ev)=>{
-  ensureAudio();
-  if (!state.running || state.paused) return;
-
-  const rect=canvas.getBoundingClientRect();
-  const x=(ev.clientX-rect.left)*(canvas.width/rect.width);
-  const y=(ev.clientY-rect.top)*(canvas.height/rect.height);
-
-  const h=findHoveredTower();
-  if (h!==-1){ upgradeTower(state.towers[h]); return; }
-  placeTower(x,y);
-});
-
-window.addEventListener("keydown",(e)=>{
-  const k=e.key.toLowerCase();
-  if (k==="delete" || k==="backspace"){
-    const h=findHoveredTower();
-    if (h!==-1) sellTower(h);
-  }
-});
 
 // ---------- Loop ----------
 let last=performance.now();
@@ -418,7 +536,7 @@ function update(dt){
 
   if (state.betweenWaves && state.time >= state.nextWaveAt) startWave();
 
-  // spawning
+  // spawn
   if (state.spawn.active){
     state.spawn.cooldown -= dt;
     while (state.spawn.cooldown <= 0 && state.spawn.toSpawn > 0){
@@ -426,14 +544,13 @@ function update(dt){
       const bossWave=(w%5===0);
       if (bossWave && state.spawn.toSpawn===1) spawnEnemy("meatball");
       else spawnEnemy(pickEnemyForWave());
-
       state.spawn.toSpawn--;
       state.spawn.cooldown += 0.55;
     }
     if (state.spawn.toSpawn<=0 && state.enemies.length===0) finishWave();
   }
 
-  // enemies move
+  // enemies
   for (let i=state.enemies.length-1;i>=0;i--){
     const e=state.enemies[i];
     if (e.slowTimer>0){
@@ -450,11 +567,11 @@ function update(dt){
       state.lives -= (e.kind==="meatball" ? 3 : 1);
       SFX.leak();
       updateHUD();
-      if (state.lives<=0){ state.running=false; state.paused=false; }
+      if (state.lives<=0){ state.running=false; state.paused=false; closeTowerActions(); }
     }
   }
 
-  // towers
+  // towers shoot
   for (const t of state.towers){
     t.cd -= dt;
     if (t.cd>0) continue;
@@ -603,14 +720,14 @@ function drawRoad(){
   ctx.restore();
 }
 
-function drawTower(t){
+function towerUpgradeCost(t){ return Math.round(t.cost * (0.7 + t.level*0.55)); }
+
+function drawTower(t, hover=false){
   const def=TOWERS[t.type];
   ctx.save();
 
-  // range ring on hover
-  const hover=findHoveredTower();
-  const idx=state.towers.indexOf(t);
-  if (idx===hover){
+  // show range if action bar is open on this tower (mobile) or hover ring
+  if (hover){
     ctx.globalAlpha=0.22;
     ctx.fillStyle=def.color;
     ctx.beginPath(); ctx.arc(t.x,t.y,t.range,0,Math.PI*2); ctx.fill();
@@ -628,28 +745,15 @@ function drawTower(t){
   if (t.type==="pep"){
     ctx.fillStyle="rgba(255, 77, 109, .85)";
     ctx.beginPath(); ctx.arc(t.x,t.y,11,0,Math.PI*2); ctx.fill();
-    ctx.fillStyle="rgba(125, 30, 45, .9)";
-    for (let i=0;i<4;i++){
-      const a=i*Math.PI/2+0.6;
-      ctx.beginPath(); ctx.arc(t.x+Math.cos(a)*6,t.y+Math.sin(a)*6,3,0,Math.PI*2); ctx.fill();
-    }
   } else if (t.type==="freezer"){
     ctx.fillStyle="rgba(114, 221, 255, .85)";
     ctx.beginPath(); ctx.arc(t.x,t.y,11,0,Math.PI*2); ctx.fill();
-    ctx.strokeStyle="rgba(233,236,255,.65)";
-    ctx.lineWidth=2;
-    ctx.beginPath(); ctx.moveTo(t.x-6,t.y-2); ctx.lineTo(t.x+6,t.y-2); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(t.x,t.y-8); ctx.lineTo(t.x,t.y+8); ctx.stroke();
   } else if (t.type==="laser"){
     ctx.fillStyle="rgba(255, 209, 102, .90)";
     ctx.beginPath(); ctx.arc(t.x,t.y,11,0,Math.PI*2); ctx.fill();
-    ctx.fillStyle="rgba(255,77,109,.65)";
-    ctx.fillRect(t.x-2,t.y-10,4,20);
   } else if (t.type==="bomb"){
     ctx.fillStyle="rgba(255, 159, 28, .90)";
     ctx.beginPath(); ctx.arc(t.x,t.y,11,0,Math.PI*2); ctx.fill();
-    ctx.fillStyle="rgba(15,18,32,.75)";
-    ctx.beginPath(); ctx.arc(t.x+4,t.y-4,3,0,Math.PI*2); ctx.fill();
   }
 
   if (t.level>0){
@@ -669,79 +773,38 @@ function drawBullet(b){
   if (b.type==="laser"){
     ctx.fillStyle="rgba(255, 209, 102, .95)";
     ctx.beginPath(); ctx.arc(b.x,b.y,3,0,Math.PI*2); ctx.fill();
-    ctx.fillStyle="rgba(255,77,109,.55)";
-    ctx.beginPath(); ctx.arc(b.x-2,b.y-2,1.5,0,Math.PI*2); ctx.fill();
   } else if (b.type==="ice"){
     ctx.fillStyle="rgba(114, 221, 255, .95)";
     ctx.beginPath(); ctx.arc(b.x,b.y,4,0,Math.PI*2); ctx.fill();
   } else if (b.type==="bomb"){
     ctx.fillStyle="rgba(255, 159, 28, .95)";
     ctx.beginPath(); ctx.arc(b.x,b.y,6,0,Math.PI*2); ctx.fill();
-    ctx.fillStyle="rgba(15,18,32,.75)";
-    ctx.beginPath(); ctx.arc(b.x+2,b.y-2,2,0,Math.PI*2); ctx.fill();
   } else {
     ctx.fillStyle="rgba(255, 77, 109, .95)";
     ctx.beginPath(); ctx.arc(b.x,b.y,4,0,Math.PI*2); ctx.fill();
-    ctx.fillStyle="rgba(255, 209, 102, .95)";
-    ctx.beginPath(); ctx.arc(b.x-1,b.y-1,1.4,0,Math.PI*2); ctx.fill();
   }
   ctx.restore();
 }
 
 function drawEnemy(e){
   ctx.save();
+  // simple body
+  if (e.kind==="rat") ctx.fillStyle="rgba(170,176,214,.92)";
+  else if (e.kind==="pineapple") ctx.fillStyle="rgba(255,209,102,.92)";
+  else if (e.kind==="olive") ctx.fillStyle="rgba(61,220,151,.90)";
+  else ctx.fillStyle="rgba(178,58,72,.93)";
+  ctx.strokeStyle="rgba(0,0,0,.25)"; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.arc(e.x,e.y,e.r,0,Math.PI*2); ctx.fill(); ctx.stroke();
 
-  if (e.kind==="rat"){
-    ctx.fillStyle="rgba(170, 176, 214, .92)";
-    ctx.strokeStyle="rgba(0,0,0,.25)"; ctx.lineWidth=2;
-    ctx.beginPath(); ctx.arc(e.x,e.y,e.r,0,Math.PI*2); ctx.fill(); ctx.stroke();
-    ctx.fillStyle="rgba(233, 236, 255, .85)";
-    ctx.beginPath(); ctx.arc(e.x-9,e.y-9,5,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.arc(e.x+9,e.y-9,5,0,Math.PI*2); ctx.fill();
-    ctx.fillStyle="rgba(15,18,32,.9)";
-    ctx.beginPath(); ctx.arc(e.x-4,e.y-1,2,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.arc(e.x+4,e.y-1,2,0,Math.PI*2); ctx.fill();
-  } else if (e.kind==="pineapple"){
-    ctx.fillStyle="rgba(255, 209, 102, .92)";
-    ctx.strokeStyle="rgba(0,0,0,.25)"; ctx.lineWidth=2;
-    ctx.beginPath(); ctx.arc(e.x,e.y,e.r,0,Math.PI*2); ctx.fill(); ctx.stroke();
-    ctx.fillStyle="rgba(61, 220, 151, .85)";
-    for (let i=-1;i<=1;i++){
-      ctx.beginPath();
-      ctx.moveTo(e.x+i*6, e.y-e.r-2);
-      ctx.lineTo(e.x+i*6-6, e.y-e.r+10);
-      ctx.lineTo(e.x+i*6+6, e.y-e.r+10);
-      ctx.closePath(); ctx.fill();
-    }
-    ctx.fillStyle="rgba(15,18,32,.85)";
-    ctx.beginPath(); ctx.arc(e.x-4,e.y+1,2,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.arc(e.x+4,e.y+1,2,0,Math.PI*2); ctx.fill();
-    ctx.fillRect(e.x-5, e.y+6, 10, 2);
-  } else if (e.kind==="olive"){
-    ctx.fillStyle="rgba(61, 220, 151, .90)";
-    ctx.strokeStyle="rgba(0,0,0,.25)"; ctx.lineWidth=2;
-    ctx.beginPath(); ctx.ellipse(e.x,e.y, e.r, e.r+2, 0, 0, Math.PI*2); ctx.fill(); ctx.stroke();
-    ctx.fillStyle="rgba(15,18,32,.85)";
-    ctx.beginPath(); ctx.arc(e.x-3,e.y,1.7,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.arc(e.x+3,e.y,1.7,0,Math.PI*2); ctx.fill();
-    ctx.strokeStyle="rgba(233,236,255,.55)";
-    ctx.lineWidth=2;
-    ctx.beginPath(); ctx.moveTo(e.x-7,e.y-9); ctx.lineTo(e.x+8,e.y-6); ctx.stroke();
-  } else {
-    ctx.fillStyle="rgba(178, 58, 72, .93)";
-    ctx.strokeStyle="rgba(0,0,0,.25)"; ctx.lineWidth=2;
-    ctx.beginPath(); ctx.arc(e.x,e.y,e.r,0,Math.PI*2); ctx.fill(); ctx.stroke();
-    ctx.fillStyle="rgba(255,209,102,.65)";
-    for (let i=0;i<6;i++){
-      const a=i*Math.PI/3 + 0.4;
-      ctx.beginPath(); ctx.arc(e.x+Math.cos(a)*10, e.y+Math.sin(a)*10, 2.5, 0, Math.PI*2); ctx.fill();
-    }
-    ctx.fillStyle="rgba(15,18,32,.85)";
-    ctx.beginPath(); ctx.arc(e.x-5,e.y-1,2.2,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.arc(e.x+5,e.y-1,2.2,0,Math.PI*2); ctx.fill();
-    ctx.fillRect(e.x-7,e.y+7,14,3);
-  }
+  // hp
+  const bw=(e.kind==="meatball"?46:32), bh=6;
+  const pct=clamp(e.hp/e.hpMax,0,1);
+  ctx.fillStyle="rgba(0,0,0,.35)";
+  ctx.fillRect(e.x-bw/2, e.y-e.r-14, bw, bh);
+  ctx.fillStyle = pct>0.5 ? "rgba(61,220,151,.9)" : (pct>0.25 ? "rgba(255,209,102,.95)" : "rgba(255,107,107,.95)");
+  ctx.fillRect(e.x-bw/2, e.y-e.r-14, bw*pct, bh);
 
+  // slow ring
   if (e.slowMul < 0.999){
     ctx.globalAlpha=0.35;
     ctx.strokeStyle="rgba(114,221,255,.95)";
@@ -749,13 +812,6 @@ function drawEnemy(e){
     ctx.beginPath(); ctx.arc(e.x,e.y,e.r+4,0,Math.PI*2); ctx.stroke();
     ctx.globalAlpha=1;
   }
-
-  const bw=(e.kind==="meatball"?46:32), bh=6;
-  const pct=clamp(e.hp/e.hpMax,0,1);
-  ctx.fillStyle="rgba(0,0,0,.35)";
-  ctx.fillRect(e.x-bw/2, e.y-e.r-14, bw, bh);
-  ctx.fillStyle = pct>0.5 ? "rgba(61,220,151,.9)" : (pct>0.25 ? "rgba(255,209,102,.95)" : "rgba(255,107,107,.95)");
-  ctx.fillRect(e.x-bw/2, e.y-e.r-14, bw*pct, bh);
 
   ctx.restore();
 }
@@ -771,7 +827,8 @@ function drawParticle(p){
 function drawOverlay(){
   ctx.save();
 
-  if (state.running && !state.paused){
+  // placement preview only if a tower is selected
+  if (state.running && !state.paused && selectedTowerId){
     const def=TOWERS[selectedTowerId];
     const ok=!isNearRoad(mouse.x,mouse.y,34);
     ctx.globalAlpha=0.18;
@@ -782,7 +839,12 @@ function drawOverlay(){
     ctx.font="800 14px ui-sans-serif,system-ui";
     ctx.textAlign="left"; ctx.textBaseline="top";
     ctx.fillStyle="rgba(233,236,255,.9)";
-    ctx.fillText(`Selected: ${def.name}  ($${def.cost})  |  Click tower to upgrade  |  Del sells`, 14, 14);
+    ctx.fillText(`Selected: ${def.name} ($${def.cost}) • Tap button again to de-select • Tap placed tower for actions`, 14, 14);
+  } else if (state.running && !state.paused && !selectedTowerId){
+    ctx.font="800 14px ui-sans-serif,system-ui";
+    ctx.textAlign="left"; ctx.textBaseline="top";
+    ctx.fillStyle="rgba(233,236,255,.85)";
+    ctx.fillText(`No tower selected • Tap a tower button to select • Tap placed tower for Upgrade/Sell`, 14, 14);
   }
 
   if (!state.running){
@@ -795,12 +857,12 @@ function drawOverlay(){
     ctx.fillText(gameOver ? "GAME OVER" : "PIZZA TOWER DEFENSE", W/2, H/2-70);
     ctx.font="700 18px ui-sans-serif,system-ui";
     ctx.fillStyle="rgba(233,236,255,.88)";
-    ctx.fillText("Click a tower button, then click the map to place. Click placed tower to upgrade.", W/2, H/2-14);
+    ctx.fillText("Tap a tower button, then tap the map to place. Tap placed tower to Upgrade/Sell.", W/2, H/2-14);
     ctx.fillStyle="rgba(170,176,214,.95)";
-    ctx.fillText("Meatball boss arrives every 5 waves.", W/2, H/2+14);
+    ctx.fillText("Tap same tower button again to de-select.", W/2, H/2+14);
     ctx.fillStyle="rgba(255,209,102,.95)";
     ctx.font="800 16px ui-sans-serif,system-ui";
-    ctx.fillText("Sound starts after your first click (browser policy).", W/2, H/2+46);
+    ctx.fillText("Sound starts after your first tap/click (browser policy).", W/2, H/2+46);
     if (gameOver){
       ctx.fillStyle="rgba(170,176,214,.95)";
       ctx.fillText(`Final Score: ${state.score}`, W/2, H/2+78);
@@ -826,14 +888,18 @@ function render(){
   ctx.clearRect(0,0,W,H);
   drawGrid();
   drawRoad();
-  for (const t of state.towers) drawTower(t);
+
+  for (let i=0;i<state.towers.length;i++){
+    drawTower(state.towers[i], i===selectedTowerIndex);
+  }
   for (const b of state.bullets) drawBullet(b);
   for (const e of state.enemies) drawEnemy(e);
   for (const p of state.particles) drawParticle(p);
+
   drawOverlay();
 }
 
-// ---------- Buttons ----------
+// ---------- Top buttons ----------
 UI.btnStart.addEventListener("click", ()=>{
   ensureAudio();
   if (!state.running){ state.running=true; state.paused=false; }
@@ -842,5 +908,6 @@ UI.btnStart.addEventListener("click", ()=>{
 UI.btnPause.addEventListener("click", ()=>{
   if (!state.running) return;
   state.paused = !state.paused;
+  if (state.paused) closeTowerActions();
 });
 UI.btnRestart.addEventListener("click", ()=> reset());
