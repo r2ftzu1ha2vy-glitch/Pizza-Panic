@@ -1,90 +1,1186 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Pizza Panic</title>
-  <link rel="stylesheet" href="style.css" />
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>🍕 Pizza Panic</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@600;800;900&display=swap');
+
+:root{
+  --bg:#0f1220;
+  --panel:#151a2e;
+  --text:#e9ecff;
+  --muted:#aab0d6;
+  --accent:#ff4d6d;
+  --gold:#ffd166;
+  --ice:#72ddff;
+  --good:#3ddc97;
+  --bad:#ff6b6b;
+  --stroke:rgba(255,255,255,.10);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;}
+body{
+  font-family:'Nunito',sans-serif;
+  background:#0d1020;
+  color:var(--text);
+  display:flex;
+  flex-direction:column;
+  height:100%;
+  height:100dvh;
+}
+
+/* TOPBAR */
+.topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:8px 12px;
+  background:rgba(15,18,32,.95);
+  border-bottom:1px solid var(--stroke);
+  flex-shrink:0;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.brand{font-family:'Fredoka One',cursive;font-size:20px;color:var(--gold);letter-spacing:.5px;white-space:nowrap;}
+.hud{display:flex;gap:10px;flex-wrap:wrap;}
+.stat{
+  display:flex;align-items:center;gap:5px;
+  background:rgba(255,255,255,.06);
+  border:1px solid var(--stroke);
+  border-radius:20px;
+  padding:4px 10px;
+  font-size:13px;font-weight:800;
+}
+.stat .icon{font-size:14px;}
+.stat .val{color:var(--gold);}
+.controls{display:flex;gap:6px;align-items:center;}
+.btn{
+  padding:7px 14px;border-radius:20px;border:1px solid var(--stroke);
+  background:rgba(255,255,255,.08);color:var(--text);cursor:pointer;
+  font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;
+  touch-action:manipulation;
+  transition:background .15s;
+}
+.btn:hover{background:rgba(255,255,255,.14);}
+.btn.primary{background:rgba(61,220,151,.18);border-color:rgba(61,220,151,.35);color:var(--good);}
+.btn.danger{background:rgba(255,77,109,.12);border-color:rgba(255,77,109,.30);color:var(--bad);}
+
+/* MUSIC TOGGLE */
+.musicBtn{
+  width:32px;height:32px;border-radius:50%;
+  border:1px solid var(--stroke);
+  background:rgba(255,255,255,.08);
+  color:var(--text);cursor:pointer;font-size:16px;
+  display:grid;place-items:center;
+  touch-action:manipulation;
+}
+
+/* MAIN LAYOUT */
+.wrap{
+  display:grid;
+  grid-template-columns:1fr 280px;
+  gap:10px;
+  padding:10px;
+  flex:1;
+  overflow:hidden;
+  min-height:0;
+}
+
+canvas{
+  width:100%;height:100%;
+  border-radius:14px;
+  border:1px solid var(--stroke);
+  background:#0d1020;
+  box-shadow:0 8px 30px rgba(0,0,0,.4);
+  touch-action:none;
+  display:block;
+}
+
+/* SIDEBAR */
+.panel{
+  border-radius:14px;
+  padding:10px;
+  border:1px solid var(--stroke);
+  background:rgba(21,26,46,.8);
+  overflow-y:auto;
+  display:flex;flex-direction:column;gap:8px;
+}
+.panel h2{
+  font-size:11px;letter-spacing:.8px;text-transform:uppercase;
+  color:var(--muted);margin:4px 0 2px;
+}
+
+/* TOWER BUTTONS */
+.towerBtn{
+  display:flex;align-items:center;gap:8px;
+  width:100%;padding:8px;
+  border-radius:12px;border:1px solid var(--stroke);
+  background:rgba(255,255,255,.05);
+  color:var(--text);cursor:pointer;text-align:left;
+  touch-action:manipulation;
+  transition:background .15s, box-shadow .15s;
+}
+.towerBtn:hover{background:rgba(255,255,255,.09);}
+.towerBtn.active{
+  border-color:rgba(255,209,102,.55);
+  box-shadow:0 0 0 3px rgba(255,209,102,.15) inset;
+  background:rgba(255,209,102,.08);
+}
+.towerBtn .ico{
+  width:36px;height:36px;border-radius:10px;
+  display:grid;place-items:center;
+  background:rgba(255,209,102,.12);
+  border:1px solid rgba(255,209,102,.2);
+  font-size:18px;flex-shrink:0;
+}
+.towerBtn .meta{flex:1;min-width:0;}
+.towerBtn .name{font-weight:900;font-size:13px;}
+.towerBtn .desc{color:var(--muted);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.towerBtn .price{color:var(--gold);font-weight:900;font-size:13px;flex-shrink:0;}
+
+/* WAVE INFO */
+.waveInfo{
+  background:rgba(255,77,109,.08);
+  border:1px solid rgba(255,77,109,.2);
+  border-radius:10px;
+  padding:8px 10px;
+  font-size:12px;
+  color:var(--muted);
+}
+.waveInfo b{color:var(--text);}
+
+/* CONTROLS HELP */
+.helpList{font-size:11px;color:var(--muted);line-height:1.6;list-style:none;}
+.helpList li::before{content:"→ ";color:var(--gold);}
+
+/* ACTION BAR */
+#actionBar{
+  position:fixed;left:0;right:0;bottom:0;
+  padding:10px 12px max(10px, env(safe-area-inset-bottom, 0px));
+  display:none;z-index:9999;
+  background:linear-gradient(0deg,rgba(10,12,24,.95),rgba(10,12,24,.7));
+  backdrop-filter:blur(10px);
+}
+#actionBar .abCard{
+  max-width:600px;margin:0 auto;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:16px;
+  background:rgba(15,18,32,.9);
+  padding:12px;
+}
+#actionBar .abTitle{font:900 15px 'Nunito',sans-serif;color:var(--gold);margin:0 2px 8px;}
+#actionBar .abRow{display:flex;gap:8px;}
+#actionBar button{
+  flex:1;padding:12px 8px;
+  border-radius:12px;border:1px solid var(--stroke);
+  background:rgba(255,255,255,.08);
+  color:var(--text);font:800 14px 'Nunito',sans-serif;
+  cursor:pointer;touch-action:manipulation;
+}
+#actionBar button.danger{border-color:rgba(255,107,107,.35);color:var(--bad);}
+#actionBar .abHint{margin:8px 2px 0;color:var(--muted);font-size:11px;}
+
+/* MOBILE LAYOUT */
+@media(max-width:680px){
+  body{overflow:hidden;}
+  .wrap{
+    grid-template-columns:1fr;
+    grid-template-rows:1fr auto;
+    padding:6px;
+    gap:6px;
+  }
+  .panel{
+    flex-direction:row;overflow-x:auto;overflow-y:hidden;
+    padding:8px;gap:6px;border-radius:12px;
+    align-items:center;
+  }
+  .panel h2{display:none;}
+  .towerBtn{min-width:90px;flex-direction:column;align-items:center;text-align:center;padding:6px;gap:4px;}
+  .towerBtn .meta{min-width:0;width:100%;}
+  .towerBtn .desc{display:none;}
+  .waveInfo,.helpList,.panel>p{display:none;}
+  .topbar{padding:6px 10px;}
+  .brand{font-size:16px;}
+  .stat{padding:3px 8px;font-size:12px;}
+  .btn{padding:6px 10px;font-size:12px;}
+}
+</style>
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand">🍕 Pizza Panic</div>
 
-    <div class="hud">
-      <div>Wave: <span id="wave">1</span></div>
-      <div>Lives: <span id="lives">20</span></div>
-      <div>Cash: $<span id="cash">140</span></div>
-      <div>Score: <span id="score">0</span></div>
+<header class="topbar">
+  <div class="brand">🍕 Pizza Panic</div>
+  <div class="hud">
+    <div class="stat"><span class="icon">🌊</span><span>Wave <span class="val" id="wave">1</span></span></div>
+    <div class="stat"><span class="icon">❤️</span><span class="val" id="lives">20</span></div>
+    <div class="stat"><span class="icon">💰</span>$<span class="val" id="cash">150</span></div>
+    <div class="stat"><span class="icon">⭐</span><span class="val" id="score">0</span></div>
+  </div>
+  <div class="controls">
+    <button class="musicBtn" id="btnMusic" title="Toggle Music">🎵</button>
+    <button class="btn primary" id="btnStart">▶ Start</button>
+    <button class="btn" id="btnPause">⏸ Pause</button>
+    <button class="btn danger" id="btnRestart">↺</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <canvas id="game" width="980" height="560"></canvas>
+  <aside class="panel">
+    <h2>🏪 Tower Shop</h2>
+    <button class="towerBtn" data-tower="pep">
+      <span class="ico">🍕</span>
+      <span class="meta"><span class="name">Pepperoni</span><span class="desc">Fast single-target</span></span>
+      <span class="price">$50</span>
+    </button>
+    <button class="towerBtn" data-tower="freezer">
+      <span class="ico">🧊</span>
+      <span class="meta"><span class="name">Freezer</span><span class="desc">Splash + slow</span></span>
+      <span class="price">$70</span>
+    </button>
+    <button class="towerBtn" data-tower="laser">
+      <span class="ico">🔪</span>
+      <span class="meta"><span class="name">Laser Slice</span><span class="desc">High damage beam</span></span>
+      <span class="price">$95</span>
+    </button>
+    <button class="towerBtn" data-tower="bomb">
+      <span class="ico">🔥</span>
+      <span class="meta"><span class="name">Bomb Oven</span><span class="desc">Big AOE explosion</span></span>
+      <span class="price">$110</span>
+    </button>
+    <button class="towerBtn" data-tower="garlic">
+      <span class="ico">🧄</span>
+      <span class="meta"><span class="name">Garlic Cannon</span><span class="desc">Rapid multi-shot</span></span>
+      <span class="price">$130</span>
+    </button>
+    <button class="towerBtn" data-tower="chili">
+      <span class="ico">🌶️</span>
+      <span class="meta"><span class="name">Chili Zapper</span><span class="desc">Chain lightning</span></span>
+      <span class="price">$160</span>
+    </button>
+
+    <h2>📋 Controls</h2>
+    <ul class="helpList">
+      <li>Select tower → tap map to place</li>
+      <li>Tap placed tower → Upgrade/Sell</li>
+      <li>Tap button again → de-select</li>
+      <li>Esc / Del → de-select / sell</li>
+    </ul>
+
+    <div class="waveInfo" id="waveInfo">
+      <b>Wave 1</b> — Rats incoming!<br>Boss every 5th wave 💀
     </div>
+  </aside>
+</main>
 
-    <div class="controls">
-      <button id="btnStart">Start</button>
-      <button id="btnPause">Pause</button>
-      <button id="btnRestart">Restart</button>
-      <div class="tip">Click a tower button, then click map to place. Click a tower to upgrade. Del sells.</div>
+<div id="actionBar">
+  <div class="abCard">
+    <div class="abTitle" id="abTitle">Tower</div>
+    <div class="abRow">
+      <button id="abUpgrade">⬆ Upgrade</button>
+      <button id="abSell" class="danger">💰 Sell</button>
+      <button id="abClose">✕ Close</button>
     </div>
-  </header>
+    <div class="abHint" id="abHint"></div>
+  </div>
+</div>
 
-  <main class="wrap">
-    <canvas id="game" width="980" height="560"></canvas>
+<script>
+// ─── Canvas setup ───────────────────────────────────────────────────────────
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+const W = canvas.width, H = canvas.height;
 
-    <aside class="panel">
-      <h2>Tower Shop</h2>
+// ─── UI refs ─────────────────────────────────────────────────────────────────
+const UI = {
+  wave: document.getElementById("wave"),
+  lives: document.getElementById("lives"),
+  cash: document.getElementById("cash"),
+  score: document.getElementById("score"),
+  btnStart: document.getElementById("btnStart"),
+  btnPause: document.getElementById("btnPause"),
+  btnRestart: document.getElementById("btnRestart"),
+  btnMusic: document.getElementById("btnMusic"),
+  waveInfo: document.getElementById("waveInfo"),
+};
+const actionBar = document.getElementById("actionBar");
+const abTitle = document.getElementById("abTitle");
+const abHint = document.getElementById("abHint");
+const abUpgrade = document.getElementById("abUpgrade");
+const abSell = document.getElementById("abSell");
+const abClose = document.getElementById("abClose");
 
-      <div class="shopGrid" id="shopGrid">
-        <button class="towerBtn active" data-tower="pep">
-          <span class="ico">🍕</span>
-          <span class="meta">
-            <span class="name">Pepperoni</span>
-            <span class="desc">Fast single-target</span>
-          </span>
-          <span class="price">$100</span>
-        </button>
+// ─── WebAudio ────────────────────────────────────────────────────────────────
+let audioCtx = null;
+let musicMuted = false;
+let musicNodes = null; // current music oscillator nodes
 
-        <button class="towerBtn" data-tower="freezer">
-          <span class="ico">🧊</span>
-          <span class="meta">
-            <span class="name">Freezer</span>
-            <span class="desc">Splash + slow</span>
-          </span>
-          <span class="price">$120</span>
-        </button>
+function ensureAudio(){
+  if(!audioCtx) audioCtx = new(window.AudioContext||window.webkitAudioContext)();
+  if(audioCtx.state==="suspended") audioCtx.resume();
+}
 
-        <button class="towerBtn" data-tower="laser">
-          <span class="ico">🔪</span>
-          <span class="meta">
-            <span class="name">Laser Slice</span>
-            <span class="desc">High damage</span>
-          </span>
-          <span class="price">$150</span>
-        </button>
+function beep({freq=440,type="sine",dur=0.08,gain=0.07,slide=0,when=0}){
+  if(!audioCtx||musicMuted) return; // never skip SFX based on musicMuted, use separate flag
+  beepRaw({freq,type,dur,gain,slide,when});
+}
+function beepRaw({freq=440,type="sine",dur=0.08,gain=0.07,slide=0,when=0}){
+  if(!audioCtx) return;
+  const t0=audioCtx.currentTime+when;
+  const osc=audioCtx.createOscillator();
+  const g=audioCtx.createGain();
+  osc.type=type; osc.frequency.setValueAtTime(freq,t0);
+  if(slide) osc.frequency.linearRampToValueAtTime(freq+slide,t0+dur);
+  g.gain.setValueAtTime(0.0001,t0);
+  g.gain.exponentialRampToValueAtTime(gain,t0+0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
+  osc.connect(g).connect(audioCtx.destination);
+  osc.start(t0); osc.stop(t0+dur+0.02);
+}
+function noiseBurst({dur=0.12,gain=0.06,when=0,hp=900}){
+  if(!audioCtx) return;
+  const t0=audioCtx.currentTime+when;
+  const bufSize=Math.max(1,Math.floor(audioCtx.sampleRate*dur));
+  const buf=audioCtx.createBuffer(1,bufSize,audioCtx.sampleRate);
+  const d=buf.getChannelData(0);
+  for(let i=0;i<bufSize;i++) d[i]=(Math.random()*2-1)*(1-i/bufSize);
+  const src=audioCtx.createBufferSource(); src.buffer=buf;
+  const f=audioCtx.createBiquadFilter(); f.type="highpass"; f.frequency.value=hp;
+  const g=audioCtx.createGain();
+  g.gain.setValueAtTime(0.0001,t0);
+  g.gain.exponentialRampToValueAtTime(gain,t0+0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
+  src.connect(f).connect(g).connect(audioCtx.destination);
+  src.start(t0); src.stop(t0+dur+0.02);
+}
 
-        <button class="towerBtn" data-tower="bomb">
-          <span class="ico">🔥</span>
-          <span class="meta">
-            <span class="name">Bomb Oven</span>
-            <span class="desc">Big splash</span>
-          </span>
-          <span class="price">$220</span>
-        </button>
-      </div>
+const SFX = {
+  shoot(){ ensureAudio(); beepRaw({freq:640,type:"square",dur:0.05,gain:0.04,slide:-160}); },
+  laser(){ ensureAudio(); beepRaw({freq:980,type:"sine",dur:0.07,gain:0.05,slide:120}); },
+  freeze(){ ensureAudio(); beepRaw({freq:420,type:"triangle",dur:0.08,gain:0.05,slide:-120}); },
+  boom(){ ensureAudio(); noiseBurst({dur:0.18,gain:0.08,hp:200}); beepRaw({freq:110,type:"sawtooth",dur:0.14,gain:0.04,slide:-20}); },
+  chain(){ ensureAudio(); beepRaw({freq:760,type:"sine",dur:0.04,gain:0.04,slide:200}); },
+  garlic(){ ensureAudio(); beepRaw({freq:520,type:"square",dur:0.04,gain:0.04,slide:-80}); },
+  hit(){ ensureAudio(); beepRaw({freq:260,type:"triangle",dur:0.05,gain:0.03,slide:-30}); },
+  kill(){ ensureAudio(); beepRaw({freq:520,type:"sine",dur:0.06,gain:0.05}); beepRaw({freq:760,type:"sine",dur:0.06,gain:0.04,when:0.06}); },
+  bossKill(){ ensureAudio(); for(let i=0;i<5;i++) beepRaw({freq:300+i*120,type:"triangle",dur:0.1,gain:0.06,when:i*0.09}); },
+  place(){ ensureAudio(); beepRaw({freq:330,type:"sine",dur:0.08,gain:0.05,slide:80}); },
+  upgrade(){ ensureAudio(); beepRaw({freq:500,type:"triangle",dur:0.06,gain:0.05}); beepRaw({freq:700,type:"triangle",dur:0.08,gain:0.05,when:0.06}); },
+  sell(){ ensureAudio(); beepRaw({freq:260,type:"square",dur:0.06,gain:0.04,slide:-80}); },
+  leak(){ ensureAudio(); beepRaw({freq:220,type:"sawtooth",dur:0.12,gain:0.05,slide:-80}); },
+  wave(){ ensureAudio(); [400,520,660].forEach((f,i)=>beepRaw({freq:f,type:"triangle",dur:0.08,gain:0.05,when:i*0.09})); },
+  bossAlert(){ ensureAudio(); [200,160,120].forEach((f,i)=>beepRaw({freq:f,type:"sawtooth",dur:0.16,gain:0.08,when:i*0.16})); },
+};
 
-      <h2>Controls</h2>
-      <ul>
-        <li><b>Click tower button</b> to select it</li>
-        <li><b>Click map</b> to place</li>
-        <li><b>Click a tower</b> to upgrade</li>
-        <li><b>Del/Backspace</b> sells hovered tower</li>
-      </ul>
+// ─── Music System ─────────────────────────────────────────────────────────────
+let musicInterval = null;
+let currentMusicType = null; // "normal" | "boss"
+let musicGainNode = null;
+let musicStep = 0;
 
-      <div class="note">Sounds are generated in-browser (no external files).</div>
-    </aside>
-  </main>
+// Chiptune note → frequency
+function n2f(note){ // "C4","D#3" etc
+  const notes=["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+  const name=note.slice(0,-1), oct=parseInt(note.slice(-1));
+  const idx=notes.indexOf(name);
+  return 440*Math.pow(2,(idx-9+(oct-4)*12)/12);
+}
 
-  <footer class="footer">
-    <span>Tip: Place towers near bends for extra shots.</span>
-  </footer>
+function playMusicNote(freq,type,dur,gain,when){
+  if(!audioCtx||musicMuted) return;
+  const t0=audioCtx.currentTime+when;
+  const osc=audioCtx.createOscillator();
+  const g=audioCtx.createGain();
+  osc.type=type; osc.frequency.value=freq;
+  g.gain.setValueAtTime(0.0001,t0);
+  g.gain.exponentialRampToValueAtTime(gain,t0+0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001,t0+dur*0.85);
+  osc.connect(g).connect(audioCtx.destination);
+  osc.start(t0); osc.stop(t0+dur);
+}
 
-  <script src="game.js"></script>
+const NORMAL_MELODY = [
+  "E5","E5","F5","G5","G5","F5","E5","D5",
+  "C5","C5","D5","E5","E5","D5","D5","E5",
+];
+const NORMAL_BASS = [
+  "C3","G3","C3","E3","F3","C3","G3","G2",
+  "C3","G2","C3","E3","F3","C3","G3","G3",
+];
+const BOSS_MELODY = [
+  "A4","A4","A4","F4","A4","G4","F4","E4",
+  "D4","D4","A4","A4","G4","F4","E4","D4",
+];
+const BOSS_BASS = [
+  "A2","E3","A2","C3","F2","C3","E3","A2",
+  "A2","E3","A2","F2","E3","D3","C3","A2",
+];
+
+function startMusic(type){
+  if(!audioCtx) return;
+  stopMusic();
+  currentMusicType = type;
+  musicStep = 0;
+  const bpm = type==="boss" ? 160 : 120;
+  const step = 60000/bpm/2;
+  const melody = type==="boss" ? BOSS_MELODY : NORMAL_MELODY;
+  const bass = type==="boss" ? BOSS_BASS : NORMAL_BASS;
+  const melGain = type==="boss" ? 0.04 : 0.03;
+  const bassGain = 0.025;
+  const dur = step/1000 * 1.1;
+
+  function tick(){
+    if(musicMuted) return;
+    const idx = musicStep % melody.length;
+    playMusicNote(n2f(melody[idx]),"triangle",dur,melGain,0);
+    playMusicNote(n2f(bass[idx]),"sawtooth",dur*1.5,bassGain,0);
+    // add a little percussion on beat
+    if(idx%4===0) noiseBurst({dur:0.06,gain:type==="boss"?0.03:0.02,hp:1400});
+    musicStep++;
+  }
+  tick();
+  musicInterval = setInterval(tick, step);
+}
+
+function stopMusic(){
+  if(musicInterval){ clearInterval(musicInterval); musicInterval=null; }
+  currentMusicType=null;
+}
+
+function toggleMusic(){
+  musicMuted=!musicMuted;
+  UI.btnMusic.textContent = musicMuted ? "🔇" : "🎵";
+  if(!musicMuted && state&&state.running&&!state.paused){
+    const type = state.bossActive ? "boss" : "normal";
+    startMusic(type);
+  } else {
+    stopMusic();
+  }
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const dist2=(ax,ay,bx,by)=>{const dx=ax-bx,dy=ay-by;return dx*dx+dy*dy;};
+const lerp=(a,b,t)=>a+(b-a)*t;
+
+// ─── Path ────────────────────────────────────────────────────────────────────
+const path=[
+  {x:40,y:80},{x:300,y:80},{x:300,y:210},{x:140,y:210},
+  {x:140,y:420},{x:520,y:420},{x:520,y:150},{x:820,y:150},
+  {x:820,y:480},{x:940,y:480},
+];
+function cachePath(){
+  const lens=[]; let total=0;
+  for(let i=0;i<path.length-1;i++){
+    const a=path[i],b=path[i+1],l=Math.hypot(b.x-a.x,b.y-a.y);
+    lens.push(l); total+=l;
+  }
+  return{lens,total};
+}
+const pathCache=cachePath();
+function pointOnPath(t){
+  let d=t*pathCache.total;
+  for(let i=0;i<pathCache.lens.length;i++){
+    const seg=pathCache.lens[i],a=path[i],b=path[i+1];
+    if(d<=seg){const tt=seg===0?0:d/seg;return{x:lerp(a.x,b.x,tt),y:lerp(a.y,b.y,tt)};}
+    d-=seg;
+  }
+  const last=path[path.length-1];return{x:last.x,y:last.y};
+}
+function isNearRoad(x,y,thresh){
+  for(let i=0;i<path.length-1;i++){
+    const a=path[i],b=path[i+1],vx=b.x-a.x,vy=b.y-a.y;
+    const wx=x-a.x,wy=y-a.y;
+    const c1=vx*wx+vy*wy,c2=vx*vx+vy*vy;
+    let t=c2===0?0:c1/c2; t=clamp(t,0,1);
+    const px=a.x+vx*t,py=a.y+vy*t;
+    if(Math.hypot(x-px,y-py)<=thresh) return true;
+  }
+  return false;
+}
+
+// ─── Tower Definitions ───────────────────────────────────────────────────────
+const TOWERS={
+  pep:    {name:"Pepperoni", cost:50,  range:120,fireRate:3.0, projectile:"bullet",dmg:10,color:"rgba(255,77,109,.9)"},
+  freezer:{name:"Freezer",  cost:70,  range:110,fireRate:1.6, projectile:"ice",   dmg:6, slow:0.6,slowDur:1.0,splash:40,color:"rgba(114,221,255,.9)"},
+  laser:  {name:"LaserSlice",cost:95, range:165,fireRate:1.2, projectile:"laser", dmg:30,color:"rgba(255,209,102,.95)"},
+  bomb:   {name:"BombOven", cost:110, range:145,fireRate:0.65,projectile:"bomb",  dmg:24,splash:65,color:"rgba(255,159,28,.95)"},
+  garlic: {name:"Garlic",   cost:130, range:100,fireRate:5.0, projectile:"garlic",dmg:7, color:"rgba(200,255,120,.9)"},
+  chili:  {name:"Chili",    cost:160, range:150,fireRate:0.9, projectile:"chain", dmg:18,chainCount:3,chainRange:80,color:"rgba(255,80,40,.95)"},
+};
+
+// ─── Enemy Definitions ───────────────────────────────────────────────────────
+const ENEMIES={
+  rat:      {hp:1.0, spd:1.0,  r:12,bounty:1.0, color:"rgba(170,176,214,.92)"},
+  pineapple:{hp:1.8, spd:0.82, r:14,bounty:1.5, color:"rgba(255,209,102,.92)"},
+  olive:    {hp:0.75,spd:1.4,  r:11,bounty:1.2, color:"rgba(61,220,151,.90)"},
+  meatball: {hp:8.0, spd:0.70, r:20,bounty:8.0, color:"rgba(178,58,72,.93)"},
+  // new enemies
+  mushroom: {hp:2.5, spd:1.0,  r:13,bounty:2.0, color:"rgba(180,120,80,.92)"},   // tanky
+  anchovy:  {hp:0.6, spd:1.8,  r:10,bounty:1.3, color:"rgba(120,200,255,.90)"},  // fast
+  pepper:   {hp:3.5, spd:0.9,  r:15,bounty:3.0, color:"rgba(255,80,40,.92)"},    // armored-ish
+  brocolli: {hp:1.2, spd:1.2,  r:12,bounty:1.5, color:"rgba(60,200,80,.92)"},    // splits
+  megaboss: {hp:30.0,spd:0.55, r:28,bounty:30.0,color:"rgba(220,20,60,.96)"},    // wave 10+ boss
+};
+
+// ─── State ───────────────────────────────────────────────────────────────────
+let state;
+let selectedTowerId=null;
+let selectedTowerIndex=-1;
+let mouse={x:0,y:0};
+
+function updateHUD(){
+  UI.wave.textContent=state.wave;
+  UI.lives.textContent=state.lives;
+  UI.cash.textContent=state.cash;
+  UI.score.textContent=state.score;
+}
+
+function reset(){
+  stopMusic();
+  state={
+    running:false,paused:false,time:0,
+    lives:20,cash:150,score:0,wave:1,
+    betweenWaves:true,nextWaveAt:1.0,
+    bossActive:false,
+    enemies:[],towers:[],bullets:[],particles:[],
+    spawn:{active:false,toSpawn:0,cooldown:0,enemyHP:20,enemySpeed:45,baseBounty:8},
+  };
+  closeTowerActions();
+  setSelectedTower(null);
+  updateHUD();
+  updateWaveInfo();
+}
+reset();
+
+function updateWaveInfo(){
+  const w=state.wave;
+  const isBoss=w%5===0;
+  const isMegaBoss=w%10===0;
+  let text=`<b>Wave ${w}</b> — `;
+  if(isMegaBoss) text+="⚠️ MEGA BOSS incoming!";
+  else if(isBoss) text+="💀 Boss wave!";
+  else text+=["Rats on the loose!","Pineapple invasion!","Anchovy blitz!","Mushroom march!"][w%4];
+  text+=` <br>Boss every 5th wave 💀`;
+  if(UI.waveInfo) UI.waveInfo.innerHTML=text;
+}
+
+// ─── Selection ───────────────────────────────────────────────────────────────
+function setSelectedTower(id){
+  selectedTowerId=id;
+  document.querySelectorAll(".towerBtn").forEach(btn=>{
+    btn.classList.toggle("active",id&&btn.dataset.tower===id);
+  });
+}
+function toggleSelectedTower(id){
+  if(selectedTowerId===id) setSelectedTower(null);
+  else setSelectedTower(id);
+}
+function closeTowerActions(){
+  selectedTowerIndex=-1;
+  actionBar.style.display="none";
+}
+function openTowerActions(index){
+  selectedTowerIndex=index;
+  const t=state.towers[index];
+  const def=TOWERS[t.type];
+  const up=towerUpgradeCost(t);
+  abTitle.textContent=`${def.name} Lv${t.level}`;
+  abHint.textContent=`Upgrade: $${up} • Sell: $${Math.round(t.cost*0.65+t.level*0.35*t.cost)} • Cash: $${state.cash}`;
+  actionBar.style.display="block";
+}
+
+document.querySelectorAll(".towerBtn").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    ensureAudio();
+    toggleSelectedTower(btn.dataset.tower);
+    closeTowerActions();
+  });
+});
+
+window.addEventListener("keydown",e=>{
+  if(e.key==="Escape"){ setSelectedTower(null); closeTowerActions(); }
+  if(e.key==="Delete"||e.key==="Backspace"){
+    if(selectedTowerIndex!==-1){ ensureAudio(); sellTower(selectedTowerIndex); closeTowerActions(); }
+  }
+});
+
+abUpgrade.addEventListener("click",()=>{ ensureAudio(); if(selectedTowerIndex>=0){upgradeTower(state.towers[selectedTowerIndex]); openTowerActions(selectedTowerIndex);} });
+abSell.addEventListener("click",()=>{ ensureAudio(); if(selectedTowerIndex>=0){sellTower(selectedTowerIndex); closeTowerActions();} });
+abClose.addEventListener("click",()=>closeTowerActions());
+UI.btnMusic.addEventListener("click",()=>{ ensureAudio(); toggleMusic(); });
+
+// ─── Tower logic ─────────────────────────────────────────────────────────────
+function placeTower(x,y){
+  if(!selectedTowerId) return false;
+  const def=TOWERS[selectedTowerId];
+  if(state.cash<def.cost) return false;
+  if(isNearRoad(x,y,36)) return false;
+  for(const t of state.towers) if(dist2(x,y,t.x,t.y)<26*26) return false;
+  state.cash-=def.cost;
+  state.towers.push({type:selectedTowerId,x,y,range:def.range,fireRate:def.fireRate,cd:0,level:0,cost:def.cost});
+  SFX.place(); updateHUD(); return true;
+}
+function towerUpgradeCost(t){ return Math.round(t.cost*(0.7+t.level*0.55)); }
+function upgradeTower(t){
+  const c=towerUpgradeCost(t);
+  if(state.cash<c) return false;
+  state.cash-=c; t.level++; t.range*=1.06; t.fireRate*=1.06;
+  SFX.upgrade(); updateHUD(); return true;
+}
+function sellTower(idx){
+  const t=state.towers[idx];
+  const refund=Math.round(t.cost*0.65+t.level*0.35*t.cost);
+  state.cash+=refund; state.towers.splice(idx,1);
+  if(selectedTowerIndex===idx) selectedTowerIndex=-1;
+  else if(selectedTowerIndex>idx) selectedTowerIndex--;
+  SFX.sell(); updateHUD();
+}
+function findTowerAt(x,y){
+  let best=-1,bd=Infinity;
+  for(let i=0;i<state.towers.length;i++){
+    const t=state.towers[i],d=dist2(x,y,t.x,t.y);
+    if(d<22*22&&d<bd){bd=d;best=i;}
+  }
+  return best;
+}
+
+// ─── Input ───────────────────────────────────────────────────────────────────
+canvas.addEventListener("pointermove",ev=>{
+  const r=canvas.getBoundingClientRect();
+  mouse.x=(ev.clientX-r.left)*(W/r.width);
+  mouse.y=(ev.clientY-r.top)*(H/r.height);
+});
+canvas.addEventListener("pointerdown",ev=>{
+  ensureAudio();
+  if(!state.running||state.paused) return;
+  const r=canvas.getBoundingClientRect();
+  const x=(ev.clientX-r.left)*(W/r.width);
+  const y=(ev.clientY-r.top)*(H/r.height);
+  const hit=findTowerAt(x,y);
+  if(hit!==-1){ openTowerActions(hit); return; }
+  closeTowerActions();
+  placeTower(x,y);
+});
+
+// ─── Waves ───────────────────────────────────────────────────────────────────
+function startWave(){
+  state.betweenWaves=false;
+  state.spawn.active=true;
+  const w=state.wave;
+  state.spawn.enemyHP=18+Math.floor(w*5.5);
+  state.spawn.enemySpeed=44+w*2.4;
+  state.spawn.baseBounty=7+Math.floor(w*0.9);
+
+  const bossWave=w%5===0;
+  const megaBoss=w%10===0;
+  let count=8+w*3;
+  if(bossWave) count=Math.max(8,count-4);
+
+  state.spawn.toSpawn=count+(bossWave?1:0)+(megaBoss?1:0);
+  state.spawn.cooldown=0.22;
+  state.bossActive=bossWave||megaBoss;
+
+  if(bossWave) SFX.bossAlert(); else SFX.wave();
+  if(!musicMuted){ startMusic(state.bossActive?"boss":"normal"); }
+  updateWaveInfo();
+}
+
+function pickEnemy(){
+  const w=state.wave;
+  // weights by wave
+  const pool=[];
+  pool.push({k:"rat",w:10});
+  if(w>=2) pool.push({k:"pineapple",w:Math.min(3+w,12)});
+  if(w>=2) pool.push({k:"olive",w:Math.min(2+w,10)});
+  if(w>=3) pool.push({k:"anchovy",w:Math.min(1+w*0.8,9)});
+  if(w>=4) pool.push({k:"mushroom",w:Math.min(w*0.6,8)});
+  if(w>=5) pool.push({k:"brocolli",w:Math.min(w*0.5,7)});
+  if(w>=6) pool.push({k:"pepper",w:Math.min(w*0.4,7)});
+  const total=pool.reduce((s,e)=>s+e.w,0);
+  let r=Math.random()*total;
+  for(const e of pool){ r-=e.w; if(r<=0) return e.k; }
+  return "rat";
+}
+
+function spawnEnemy(kind){
+  const p=pointOnPath(0);
+  const def=ENEMIES[kind];
+  const hp=Math.round(state.spawn.enemyHP*def.hp);
+  state.enemies.push({
+    kind,t:0,x:p.x,y:p.y,r:def.r,
+    hp,hpMax:hp,
+    speed:state.spawn.enemySpeed*def.spd,
+    slowMul:1,slowTimer:0,
+    splitDone:false
+  });
+}
+
+function finishWave(){
+  state.betweenWaves=true;
+  state.spawn.active=false;
+  state.bossActive=false;
+  state.nextWaveAt=state.time+2.5;
+  state.wave++; updateHUD(); updateWaveInfo();
+  // bonus cash per wave
+  const bonus=10+state.wave*2;
+  state.cash+=bonus; updateHUD();
+  stopMusic();
+}
+
+// ─── Projectiles ─────────────────────────────────────────────────────────────
+function fireProjectile(tower,target){
+  const def=TOWERS[tower.type];
+  const ang=Math.atan2(target.y-tower.y,target.x-tower.x);
+  let spd=420,life=0.75;
+  if(def.projectile==="laser"){spd=900;life=0.22;}
+  if(def.projectile==="bomb"){spd=360;life=0.85;}
+  if(def.projectile==="ice"){spd=380;life=0.80;}
+  if(def.projectile==="garlic"){spd=500;life=0.50;}
+  if(def.projectile==="chain"){spd=700;life=0.30;}
+
+  state.bullets.push({
+    type:def.projectile,
+    x:tower.x,y:tower.y,
+    vx:Math.cos(ang)*spd,vy:Math.sin(ang)*spd,
+    r:def.projectile==="bomb"?6:4,
+    dmg:def.dmg*(1+tower.level*0.18),
+    splash:def.splash?def.splash*(1+tower.level*0.10):0,
+    slow:def.slow??0,slowDur:def.slowDur??0,
+    chainCount:def.chainCount??(0),
+    chainRange:def.chainRange??(0),
+    chainHit:new Set([target]),
+    life,
+    targetEnemy:target,
+  });
+
+  if(def.projectile==="laser") SFX.laser();
+  else if(def.projectile==="bomb") SFX.boom();
+  else if(def.projectile==="ice") SFX.freeze();
+  else if(def.projectile==="garlic") SFX.garlic();
+  else if(def.projectile==="chain") SFX.chain();
+  else SFX.shoot();
+}
+
+function chainLightning(source, dmg, count, range, hitSet){
+  if(count<=0) return;
+  let next=null,bestD=range*range;
+  for(const e of state.enemies){
+    if(hitSet.has(e)) continue;
+    const d=dist2(source.x,source.y,e.x,e.y);
+    if(d<bestD){bestD=d;next=e;}
+  }
+  if(!next) return;
+  hitSet.add(next);
+  addParticles(source.x,source.y,"rgba(255,180,60,.9)",4);
+  addLine(source.x,source.y,next.x,next.y,"rgba(255,180,60,.85)");
+  applyHit(next,dmg*0.75,{slow:0,slowDur:0},true);
+  chainLightning(next,dmg*0.75,count-1,range,hitSet);
+}
+
+// ─── Particles & lines ───────────────────────────────────────────────────────
+function addParticles(x,y,color,n=8){
+  for(let i=0;i<n;i++){
+    const a=Math.random()*Math.PI*2, s=40+Math.random()*160;
+    state.particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:0.35+Math.random()*0.25,r:2+Math.random()*2,color});
+  }
+}
+function addLine(x1,y1,x2,y2,color){
+  state.particles.push({isLine:true,x1,y1,x2,y2,life:0.15,maxLife:0.15,color});
+}
+
+// ─── Main update ─────────────────────────────────────────────────────────────
+let last=performance.now();
+requestAnimationFrame(loop);
+
+function loop(now){
+  const dt=clamp((now-last)/1000,0,0.05); last=now;
+  if(state.running&&!state.paused) update(dt);
+  render();
+  requestAnimationFrame(loop);
+}
+
+function update(dt){
+  state.time+=dt;
+  if(state.betweenWaves&&state.time>=state.nextWaveAt) startWave();
+
+  // spawn
+  if(state.spawn.active){
+    state.spawn.cooldown-=dt;
+    while(state.spawn.cooldown<=0&&state.spawn.toSpawn>0){
+      const w=state.wave;
+      const isBoss=w%5===0, isMegaBoss=w%10===0;
+      const remaining=state.spawn.toSpawn;
+      if(isMegaBoss&&remaining===1) spawnEnemy("megaboss");
+      else if(isBoss&&remaining===1) spawnEnemy("meatball");
+      else spawnEnemy(pickEnemy());
+      state.spawn.toSpawn--;
+      state.spawn.cooldown+=0.50;
+    }
+    if(state.spawn.toSpawn<=0&&state.enemies.length===0) finishWave();
+  }
+
+  // enemies
+  for(let i=state.enemies.length-1;i>=0;i--){
+    const e=state.enemies[i];
+    if(e.slowTimer>0){e.slowTimer-=dt; if(e.slowTimer<=0)e.slowMul=1;}
+    e.t+=(e.speed*e.slowMul*dt)/pathCache.total;
+    const p=pointOnPath(clamp(e.t,0,1));
+    e.x=p.x; e.y=p.y;
+
+    // brocolli splits at half hp
+    if(e.kind==="brocolli"&&!e.splitDone&&e.hp<e.hpMax*0.5){
+      e.splitDone=true;
+      for(let s=0;s<2;s++){
+        const hp=Math.round(e.hpMax*0.3);
+        state.enemies.push({kind:"olive",t:e.t,x:e.x,y:e.y,r:11,hp,hpMax:hp,speed:e.speed*1.15,slowMul:1,slowTimer:0,splitDone:false});
+      }
+      addParticles(e.x,e.y,"rgba(60,200,80,.9)",10);
+    }
+
+    if(e.t>=1){
+      state.enemies.splice(i,1);
+      const dmg=e.kind==="megaboss"?5:(e.kind==="meatball"?3:1);
+      state.lives-=dmg; SFX.leak(); updateHUD();
+      if(state.lives<=0){state.running=false;state.paused=false;closeTowerActions();stopMusic();}
+    }
+  }
+
+  // towers shoot
+  for(const t of state.towers){
+    t.cd-=dt;
+    if(t.cd>0) continue;
+    const r2=t.range*t.range;
+    let best=null,bestScore=Infinity;
+    for(const e of state.enemies){
+      const d=dist2(t.x,t.y,e.x,e.y);
+      if(d>r2) continue;
+      const prio=(e.kind==="megaboss")?-2e12:(e.kind==="meatball")?-1e12:0;
+      const score=prio+(1-e.t)*1e9;
+      if(score<bestScore){bestScore=score;best=e;}
+    }
+    if(best){
+      fireProjectile(t,best);
+      t.cd=1/(t.fireRate*(1+t.level*0.06));
+    }
+  }
+
+  // bullets
+  for(let i=state.bullets.length-1;i>=0;i--){
+    const b=state.bullets[i];
+    b.x+=b.vx*dt; b.y+=b.vy*dt; b.life-=dt;
+    let hit=-1;
+    for(let j=0;j<state.enemies.length;j++){
+      const e=state.enemies[j];
+      const rr=b.r+e.r;
+      if(dist2(b.x,b.y,e.x,e.y)<=rr*rr){hit=j;break;}
+    }
+    if(hit!==-1){
+      const e=state.enemies[hit];
+      applyHit(e,b.dmg,b,false);
+      if(b.splash>0){
+        const s2=b.splash*b.splash;
+        for(let j=state.enemies.length-1;j>=0;j--){
+          if(j===hit) continue;
+          if(dist2(b.x,b.y,state.enemies[j].x,state.enemies[j].y)<=s2)
+            applyHit(state.enemies[j],b.dmg*0.65,b,true);
+        }
+        addParticles(b.x,b.y,"rgba(255,209,102,.9)",14);
+      } else {
+        addParticles(b.x,b.y,"rgba(255,77,109,.9)",6);
+      }
+      // chain lightning
+      if(b.chainCount>0&&b.chainHit){
+        chainLightning(e,b.dmg,b.chainCount,b.chainRange,b.chainHit);
+      }
+      state.bullets.splice(i,1); continue;
+    }
+    if(b.life<=0||b.x<0||b.y<0||b.x>W||b.y>H) state.bullets.splice(i,1);
+  }
+
+  // particles
+  for(let i=state.particles.length-1;i>=0;i--){
+    const p=state.particles[i];
+    if(p.isLine){p.life-=dt;if(p.life<=0)state.particles.splice(i,1);continue;}
+    p.x+=p.vx*dt; p.y+=p.vy*dt;
+    p.vx*=Math.pow(0.04,dt); p.vy*=Math.pow(0.04,dt);
+    p.life-=dt;
+    if(p.life<=0) state.particles.splice(i,1);
+  }
+}
+
+function applyHit(enemy,dmg,proj,fromSplash){
+  enemy.hp-=dmg;
+  if(!fromSplash) SFX.hit();
+  if(proj.slowDur>0){
+    enemy.slowMul=Math.min(enemy.slowMul,proj.slow);
+    enemy.slowTimer=Math.max(enemy.slowTimer,proj.slowDur);
+  } else {
+    enemy.slowMul=Math.min(enemy.slowMul,0.92);
+    enemy.slowTimer=Math.max(enemy.slowTimer,0.08);
+  }
+  if(enemy.hp<=0){
+    const def=ENEMIES[enemy.kind];
+    const bounty=Math.round(state.spawn.baseBounty*def.bounty);
+    state.cash+=bounty;
+    const pts=enemy.kind==="megaboss"?500:(enemy.kind==="meatball"?150:10);
+    state.score+=pts;
+    if(enemy.kind==="megaboss") SFX.bossKill();
+    else SFX.kill();
+    addParticles(enemy.x,enemy.y,def.color,enemy.r*1.2|0);
+    const idx=state.enemies.indexOf(enemy);
+    if(idx!==-1) state.enemies.splice(idx,1);
+    updateHUD();
+  }
+}
+
+// ─── Render ──────────────────────────────────────────────────────────────────
+function drawGrid(){
+  ctx.save();
+  ctx.strokeStyle="rgba(255,255,255,.04)";
+  ctx.lineWidth=1;
+  const step=40;
+  for(let x=0;x<=W;x+=step){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=0;y<=H;y+=step){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+  ctx.restore();
+}
+
+function drawRoad(){
+  ctx.save();
+  ctx.lineCap="round";ctx.lineJoin="round";
+  // outer glow
+  ctx.strokeStyle="rgba(255,209,102,.12)"; ctx.lineWidth=52;
+  ctx.beginPath();ctx.moveTo(path[0].x,path[0].y);
+  for(let i=1;i<path.length;i++) ctx.lineTo(path[i].x,path[i].y);
+  ctx.stroke();
+  // road fill
+  ctx.strokeStyle="rgba(20,24,44,.85)"; ctx.lineWidth=38;
+  ctx.beginPath();ctx.moveTo(path[0].x,path[0].y);
+  for(let i=1;i<path.length;i++) ctx.lineTo(path[i].x,path[i].y);
+  ctx.stroke();
+  // edge lines
+  ctx.strokeStyle="rgba(255,209,102,.30)"; ctx.lineWidth=38;
+  ctx.beginPath();ctx.moveTo(path[0].x,path[0].y);
+  for(let i=1;i<path.length;i++) ctx.lineTo(path[i].x,path[i].y);
+  ctx.stroke();
+  // asphalt
+  ctx.strokeStyle="rgba(14,17,34,.92)"; ctx.lineWidth=32;
+  ctx.beginPath();ctx.moveTo(path[0].x,path[0].y);
+  for(let i=1;i<path.length;i++) ctx.lineTo(path[i].x,path[i].y);
+  ctx.stroke();
+  // dashes
+  ctx.setLineDash([14,12]);
+  ctx.strokeStyle="rgba(255,209,102,.42)"; ctx.lineWidth=2.5;
+  ctx.beginPath();ctx.moveTo(path[0].x,path[0].y);
+  for(let i=1;i<path.length;i++) ctx.lineTo(path[i].x,path[i].y);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  // start/end markers
+  const s=path[0],e=path[path.length-1];
+  ctx.fillStyle="rgba(61,220,151,.25)";ctx.strokeStyle="rgba(61,220,151,.5)";ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(s.x,s.y,16,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.fillStyle="rgba(255,77,109,.22)";ctx.strokeStyle="rgba(255,77,109,.5)";
+  ctx.beginPath();ctx.arc(e.x,e.y,16,0,Math.PI*2);ctx.fill();ctx.stroke();
+  // labels
+  ctx.font="900 11px Nunito,sans-serif";ctx.textAlign="center";ctx.textBaseline="middle";
+  ctx.fillStyle="rgba(61,220,151,.8)";ctx.fillText("IN",s.x,s.y);
+  ctx.fillStyle="rgba(255,77,109,.8)";ctx.fillText("OUT",e.x,e.y);
+  ctx.restore();
+}
+
+const TOWER_ICONS={"pep":"🍕","freezer":"🧊","laser":"🔪","bomb":"🔥","garlic":"🧄","chili":"🌶️"};
+
+function drawTower(t,showRange=false){
+  const def=TOWERS[t.type];
+  ctx.save();
+  if(showRange){
+    ctx.globalAlpha=0.18;ctx.fillStyle=def.color;
+    ctx.beginPath();ctx.arc(t.x,t.y,t.range,0,Math.PI*2);ctx.fill();
+    ctx.globalAlpha=1;
+  }
+  // shadow
+  ctx.fillStyle="rgba(0,0,0,.25)";
+  ctx.beginPath();ctx.ellipse(t.x,t.y+12,18,7,0,0,Math.PI*2);ctx.fill();
+  // base
+  const grad=ctx.createRadialGradient(t.x-4,t.y-4,2,t.x,t.y,18);
+  grad.addColorStop(0,"rgba(255,255,255,.2)");grad.addColorStop(1,"rgba(0,0,0,.15)");
+  ctx.fillStyle="rgba(255,209,102,.95)";
+  ctx.strokeStyle="rgba(0,0,0,.2)";ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(t.x,t.y,17,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.fillStyle=grad;ctx.beginPath();ctx.arc(t.x,t.y,17,0,Math.PI*2);ctx.fill();
+  // inner
+  const colors={pep:"rgba(255,77,109,.85)",freezer:"rgba(114,221,255,.85)",laser:"rgba(255,209,102,.9)",bomb:"rgba(255,159,28,.9)",garlic:"rgba(180,255,100,.85)",chili:"rgba(255,80,40,.85)"};
+  ctx.fillStyle=colors[t.type]||"white";
+  ctx.beginPath();ctx.arc(t.x,t.y,11,0,Math.PI*2);ctx.fill();
+  // emoji
+  ctx.font="13px serif";ctx.textAlign="center";ctx.textBaseline="middle";
+  ctx.fillText(TOWER_ICONS[t.type]||"?",t.x,t.y);
+  // level badge
+  if(t.level>0){
+    ctx.fillStyle="rgba(10,13,28,.8)";ctx.beginPath();ctx.arc(t.x+13,t.y-13,9,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle="rgba(255,209,102,.95)";ctx.font="900 10px Nunito,sans-serif";
+    ctx.textAlign="center";ctx.textBaseline="middle";
+    ctx.fillText(String(t.level),t.x+13,t.y-13);
+  }
+  ctx.restore();
+}
+
+const ENEMY_EMOJI={rat:"🐀",pineapple:"🍍",olive:"🫒",meatball:"🍝",mushroom:"🍄",anchovy:"🐟",pepper:"🌶",brocolli:"🥦",megaboss:"💀"};
+
+function drawEnemy(e){
+  const def=ENEMIES[e.kind];
+  ctx.save();
+  // shadow
+  ctx.fillStyle="rgba(0,0,0,.2)";
+  ctx.beginPath();ctx.ellipse(e.x,e.y+e.r*0.7,e.r*.9,e.r*.4,0,0,Math.PI*2);ctx.fill();
+  // body
+  if(e.kind==="megaboss"){
+    // pulsing effect
+    const pulse=0.9+0.1*Math.sin(performance.now()/120);
+    ctx.fillStyle=def.color;ctx.strokeStyle="rgba(255,50,80,.8)";ctx.lineWidth=3;
+    ctx.beginPath();ctx.arc(e.x,e.y,e.r*pulse,0,Math.PI*2);ctx.fill();ctx.stroke();
+  } else {
+    ctx.fillStyle=def.color;ctx.strokeStyle="rgba(0,0,0,.25)";ctx.lineWidth=2;
+    ctx.beginPath();ctx.arc(e.x,e.y,e.r,0,Math.PI*2);ctx.fill();ctx.stroke();
+  }
+  // emoji
+  ctx.font=`${e.r*1.1|0}px serif`;ctx.textAlign="center";ctx.textBaseline="middle";
+  ctx.fillText(ENEMY_EMOJI[e.kind]||"?",e.x,e.y);
+  // hp bar
+  const bw=e.r*2.8|0,bh=e.kind==="megaboss"?8:5;
+  const pct=clamp(e.hp/e.hpMax,0,1);
+  ctx.fillStyle="rgba(0,0,0,.4)";ctx.fillRect(e.x-bw/2,e.y-e.r-14,bw,bh);
+  ctx.fillStyle=pct>0.5?"rgba(61,220,151,.9)":(pct>0.25?"rgba(255,209,102,.95)":"rgba(255,107,107,.95)");
+  ctx.fillRect(e.x-bw/2,e.y-e.r-14,bw*pct,bh);
+  // slow ring
+  if(e.slowMul<0.999){
+    ctx.globalAlpha=0.4;ctx.strokeStyle="rgba(114,221,255,.95)";ctx.lineWidth=3;
+    ctx.beginPath();ctx.arc(e.x,e.y,e.r+5,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1;
+  }
+  ctx.restore();
+}
+
+function drawBullet(b){
+  ctx.save();
+  const cols={laser:"rgba(255,209,102,.95)",ice:"rgba(114,221,255,.95)",bomb:"rgba(255,159,28,.95)",garlic:"rgba(180,255,100,.95)",chain:"rgba(255,180,60,.95)"};
+  ctx.fillStyle=cols[b.type]||"rgba(255,77,109,.95)";
+  ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);ctx.fill();
+  // glow
+  ctx.globalAlpha=0.3;ctx.fillStyle=ctx.fillStyle;
+  ctx.beginPath();ctx.arc(b.x,b.y,b.r*2.5,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+}
+
+function drawParticle(p){
+  ctx.save();
+  if(p.isLine){
+    ctx.globalAlpha=clamp(p.life/p.maxLife,0,1)*0.85;
+    ctx.strokeStyle=p.color;ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(p.x1,p.y1);ctx.lineTo(p.x2,p.y2);ctx.stroke();
+    ctx.restore();return;
+  }
+  ctx.globalAlpha=clamp(p.life/0.6,0,1);
+  ctx.fillStyle=p.color;
+  ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+}
+
+function drawOverlay(){
+  ctx.save();
+  if(state.running&&!state.paused&&selectedTowerId){
+    const def=TOWERS[selectedTowerId];
+    const ok=!isNearRoad(mouse.x,mouse.y,36);
+    ctx.globalAlpha=0.15;ctx.fillStyle=ok?def.color:"rgba(255,107,107,.9)";
+    ctx.beginPath();ctx.arc(mouse.x,mouse.y,def.range,0,Math.PI*2);ctx.fill();
+    ctx.globalAlpha=ok?0.9:0.5;ctx.fillStyle=ok?def.color:"rgba(255,107,107,.9)";
+    ctx.beginPath();ctx.arc(mouse.x,mouse.y,8,0,Math.PI*2);ctx.fill();
+    ctx.globalAlpha=1;
+    // hint text
+    ctx.font="800 13px Nunito,sans-serif";ctx.textAlign="left";ctx.textBaseline="top";
+    ctx.fillStyle="rgba(233,236,255,.85)";
+    ctx.fillText(`${def.name} $${def.cost} • tap map to place • tap button again to cancel`,12,12);
+  } else if(state.running&&!state.paused&&!selectedTowerId){
+    ctx.font="800 13px Nunito,sans-serif";ctx.textAlign="left";ctx.textBaseline="top";
+    ctx.fillStyle="rgba(170,176,214,.7)";
+    ctx.fillText("Select a tower from the shop →",12,12);
+  }
+
+  // BOSS WAVE banner
+  if(state.running&&!state.paused&&state.bossActive&&state.enemies.length>0){
+    const bossExists=state.enemies.some(e=>e.kind==="meatball"||e.kind==="megaboss");
+    if(bossExists){
+      const t=performance.now()/500;
+      const alpha=0.65+0.25*Math.sin(t*Math.PI*2);
+      ctx.globalAlpha=alpha;
+      ctx.font="900 22px Fredoka One,cursive";
+      ctx.textAlign="center";ctx.textBaseline="top";
+      ctx.fillStyle=state.enemies.some(e=>e.kind==="megaboss")?"rgba(220,20,60,1)":"rgba(255,100,100,1)";
+      ctx.fillText(state.enemies.some(e=>e.kind==="megaboss")?"⚠️ MEGA BOSS ⚠️":"💀 BOSS WAVE 💀",W/2,14);
+      ctx.globalAlpha=1;
+    }
+  }
+
+  if(!state.running){
+    ctx.fillStyle="rgba(0,0,0,.55)";ctx.fillRect(0,0,W,H);
+    const gameOver=state.lives<=0;
+    ctx.textAlign="center";
+    // title
+    ctx.font="900 46px Fredoka One,cursive";
+    const gr=ctx.createLinearGradient(W/2-200,0,W/2+200,0);
+    gr.addColorStop(0,"#ff4d6d");gr.addColorStop(0.5,"#ffd166");gr.addColorStop(1,"#3ddc97");
+    ctx.fillStyle=gr;
+    ctx.fillText(gameOver?"GAME OVER 🍕":"🍕 PIZZA PANIC",W/2,H/2-80);
+    ctx.font="700 16px Nunito,sans-serif";ctx.fillStyle="rgba(233,236,255,.85)";
+    if(gameOver){
+      ctx.fillText(`Final Score: ${state.score} points`,W/2,H/2-28);
+      ctx.fillText("The rats ate all the pizza...",W/2,H/2+4);
+    } else {
+      ctx.fillText("Select a tower from the shop, then tap the map to place it.",W/2,H/2-28);
+      ctx.fillText("Tap a placed tower to Upgrade or Sell it.",W/2,H/2+4);
+    }
+    ctx.font="700 14px Nunito,sans-serif";ctx.fillStyle="rgba(255,209,102,.9)";
+    ctx.fillText("🌊 Boss every 5th wave  •  🔥 Mega Boss every 10th  •  🥦 Broccoli splits!",W/2,H/2+38);
+    ctx.font="700 13px Nunito,sans-serif";ctx.fillStyle="rgba(170,176,214,.8)";
+    ctx.fillText("Sound starts after your first tap • Enable music with 🎵 button",W/2,H/2+66);
+  }
+
+  if(state.paused){
+    ctx.fillStyle="rgba(0,0,0,.40)";ctx.fillRect(0,0,W,H);
+    ctx.textAlign="center";
+    ctx.font="900 42px Fredoka One,cursive";ctx.fillStyle="rgba(255,209,102,.95)";
+    ctx.fillText("⏸ PAUSED",W/2,H/2-20);
+    ctx.font="700 15px Nunito,sans-serif";ctx.fillStyle="rgba(170,176,214,.9)";
+    ctx.fillText("Press Pause again to resume",W/2,H/2+18);
+  }
+  ctx.restore();
+}
+
+function render(){
+  ctx.clearRect(0,0,W,H);
+  drawGrid();drawRoad();
+  for(let i=0;i<state.towers.length;i++) drawTower(state.towers[i],i===selectedTowerIndex);
+  for(const b of state.bullets) drawBullet(b);
+  for(const e of state.enemies) drawEnemy(e);
+  for(const p of state.particles) drawParticle(p);
+  drawOverlay();
+}
+
+// ─── Buttons ─────────────────────────────────────────────────────────────────
+UI.btnStart.addEventListener("click",()=>{
+  ensureAudio();
+  if(!state.running){state.running=true;state.paused=false;}
+  else state.paused=false;
+  if(!musicMuted) startMusic("normal");
+});
+UI.btnPause.addEventListener("click",()=>{
+  if(!state.running) return;
+  state.paused=!state.paused;
+  if(state.paused){closeTowerActions();stopMusic();}
+  else if(!musicMuted) startMusic(state.bossActive?"boss":"normal");
+});
+UI.btnRestart.addEventListener("click",()=>reset());
+</script>
 </body>
 </html>
